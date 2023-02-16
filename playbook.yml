@@ -1,0 +1,31 @@
+---
+# Setup base client for xray
+
+- hosts: all
+
+  tasks:
+
+  - name: Set SAN Policy to OnlineAll
+    win_shell: |
+        Set-StorageSetting -NewDiskPolicy OnlineAll
+
+  - name: Install chocolatey, openssh wget fio 7zip prometheus-windows-exporter.install procexp procmon
+    win_shell: |
+        iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+        choco install -y openssh -params "/SSHServerFeature" wget fio 7zip procexp procmon
+#        Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\windows_exporter" -Name "ImagePath" `
+#        -Value '"C:\windows_exporter.exe" --log.format logger:eventlog?name=windows_exporter  --telemetry.addr :9182 --collectors.enabled="cpu,net,physical_disk" --log.level=debug --collector.physical_disk.disk-blacklist=". C:"'
+#        Restart-Service windows_exporter
+
+  - name: Create root user and set password policy to allow no expiration globally and for administrator account
+    win_shell: |
+        wmic useraccount WHERE Name='administrator' set PasswordExpires=false
+        net accounts /MaxPWAge:unlimited
+        net user /add root nutanix/4u
+        net localgroup administrators /add root
+
+  - name: RefreshEnv
+    win_command: C:\ProgramData\chocolatey\bin\RefreshEnv.cmd
+
+  - name: Disable Windows Firewall
+    win_command: netsh advfirewall set allprofiles state off
