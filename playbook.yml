@@ -21,8 +21,17 @@
     win_shell: |
         wmic useraccount WHERE Name='administrator' set PasswordExpires=false
         net accounts /MaxPWAge:unlimited
-        net user /add root nutanix/4u
-        net localgroup administrators /add root
+
+	# disable password complexity requirements
+	secedit /export /cfg c:\new.cfg
+	${c:new.cfg}=${c:new.cfg} | % {$_.Replace('PasswordComplexity=1', 'PasswordComplexity=0')}
+	secedit /configure /db $env:windir\security\new.sdb /cfg c:\new.cfg /areas SECURITYPOLICY
+	del c:\new.cfg
+
+	# create nutanix user and add to Administrators local group
+	$Password = ConvertTo-SecureString "nutanix/4u" -AsPlainText -Force
+	New-LocalUser -AccountNeverExpires -Password $Password -PasswordNeverExpires -Name "nutanix"
+	Add-LocalGroupMember -Group Administrators -Member nutanix
 
   - name: RefreshEnv
     win_command: C:\ProgramData\chocolatey\bin\RefreshEnv.cmd
