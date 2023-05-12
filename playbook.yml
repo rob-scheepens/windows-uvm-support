@@ -13,9 +13,10 @@
     win_shell: |
         iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
         choco install -y openssh -params "/SSHServerFeature" wget fio 7zip procexp procmon
-#        Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\windows_exporter" -Name "ImagePath" `
-#        -Value '"C:\windows_exporter.exe" --log.format logger:eventlog?name=windows_exporter  --telemetry.addr :9182 --collectors.enabled="cpu,net,physical_disk" --log.level=debug --collector.physical_disk.disk-blacklist=". C:"'
-#        Restart-Service windows_exporter
+
+  - name: Create windows_exporter service with custom build in C:\
+    win_shell: |
+        New-Service -BinaryPathName C:\windows_exporter.exe -DisplayName windows_exporter -Name windows_exporter -StartupType Automatic
 
   - name: Create root user and set password policy to allow no expiration globally and for administrator account
     win_shell: |
