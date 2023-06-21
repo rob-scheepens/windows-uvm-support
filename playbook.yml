@@ -9,6 +9,9 @@
     win_shell: |
         Set-StorageSetting -NewDiskPolicy OnlineAll
 
+  - name: Disable Windows Firewall
+    win_command: netsh advfirewall set allprofiles state off
+
   - name: Install chocolatey, openssh wget 7zip prometheus-windows-exporter.install procexp procmon
     win_shell: |
         iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
@@ -28,19 +31,18 @@
         wget https://github.com/axboe/fio/releases/download/fio-3.35/fio-3.35-x64.msi
         msiexec /quiet /i fio-3.35-x64.msi
 
-	# disable password complexity requirements
-	secedit /export /cfg c:\new.cfg
-	${c:new.cfg}=${c:new.cfg} | % {$_.Replace('PasswordComplexity=1', 'PasswordComplexity=0')}
-	secedit /configure /db $env:windir\security\new.sdb /cfg c:\new.cfg /areas SECURITYPOLICY
-	del c:\new.cfg
+  - name: Disable password complexity requirements
+    win_shell: |        
+        secedit /export /cfg c:\new.cfg
+        ${c:new.cfg}=${c:new.cfg} | % {$_.Replace('PasswordComplexity=1', 'PasswordComplexity=0')}
+        secedit /configure /db $env:windir\security\new.sdb /cfg c:\new.cfg /areas SECURITYPOLICY
+        del c:\new.cfg
 
-	# create nutanix user and add to Administrators local group
-	$Password = ConvertTo-SecureString "nutanix/4u" -AsPlainText -Force
-	New-LocalUser -AccountNeverExpires -Password $Password -PasswordNeverExpires -Name "nutanix"
-	Add-LocalGroupMember -Group Administrators -Member nutanix
+  - name: Create nutanix user and add to Administrators local group
+      win_shell: |
+        $Password = ConvertTo-SecureString "nutanix/4u" -AsPlainText -Force
+        New-LocalUser -AccountNeverExpires -Password $Password -PasswordNeverExpires -Name "nutanix"
+        Add-LocalGroupMember -Group Administrators -Member nutanix
 
   - name: RefreshEnv
     win_command: C:\ProgramData\chocolatey\bin\RefreshEnv.cmd
-
-  - name: Disable Windows Firewall
-    win_command: netsh advfirewall set allprofiles state off
