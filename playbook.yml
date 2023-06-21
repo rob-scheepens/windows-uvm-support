@@ -9,10 +9,10 @@
     win_shell: |
         Set-StorageSetting -NewDiskPolicy OnlineAll
 
-  - name: Install chocolatey, openssh wget fio 7zip prometheus-windows-exporter.install procexp procmon
+  - name: Install chocolatey, openssh wget 7zip prometheus-windows-exporter.install procexp procmon
     win_shell: |
         iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
-        choco install -y openssh -params "/SSHServerFeature" wget fio 7zip procexp procmon
+        choco install -y openssh -params "/SSHServerFeature" wget 7zip procexp procmon
 
   - name: Create windows_exporter service with custom build in C:\
     win_shell: |
@@ -22,6 +22,11 @@
     win_shell: |
         wmic useraccount WHERE Name='administrator' set PasswordExpires=false
         net accounts /MaxPWAge:unlimited
+
+  - name: Install fio using msi from GitHub
+    win_shell: |
+        wget https://github.com/axboe/fio/releases/download/fio-3.35/fio-3.35-x64.msi
+        msiexec /quiet /i fio-3.35-x64.msi
 
 	# disable password complexity requirements
 	secedit /export /cfg c:\new.cfg
