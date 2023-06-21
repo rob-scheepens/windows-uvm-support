@@ -43,6 +43,7 @@
     win_shell: |
         wget https://github.com/axboe/fio/releases/download/fio-3.35/fio-3.35-x64.msi
         msiexec /quiet /i fio-3.35-x64.msi
+        del fio-3.35-x64.msi
 
   - name: RefreshEnv
     win_command: C:\ProgramData\chocolatey\bin\RefreshEnv.cmd
