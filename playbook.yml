@@ -12,7 +12,7 @@
   - name: Disable Windows Firewall
     win_command: netsh advfirewall set allprofiles state off
 
-  - name: Install chocolatey, openssh wget 7zip prometheus-windows-exporter.install procexp procmon
+  - name: Install chocolatey, openssh wget 7zip procexp procmon
     win_shell: |
         iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
         choco install -y openssh -params "/SSHServerFeature" wget 7zip procexp procmon
@@ -21,28 +21,28 @@
     win_shell: |
         New-Service -BinaryPathName C:\windows_exporter.exe -DisplayName windows_exporter -Name windows_exporter -StartupType Automatic
 
-  - name: Create root user and set password policy to allow no expiration globally and for administrator account
+  - name: Disable password complexity requirements
+    win_shell: |        
+        secedit /export /cfg c:\secedit.cfg
+        (gc c:\secedit.cfg) -Replace('PasswordComplexity = 1', 'PasswordComplexity = 0') | Out-File -Encoding ascii c:\secedit.cfg
+        secedit /configure /db $env:windir\security\secedit.sdb /cfg c:\secedit.cfg /areas SECURITYPOLICY
+        del c:\secedit.cfg
+
+  - name: Set password policy to allow no expiration globally and for administrator account
     win_shell: |
         wmic useraccount WHERE Name='administrator' set PasswordExpires=false
         net accounts /MaxPWAge:unlimited
+
+  - name: Create nutanix user and add to Administrators local group
+    win_shell: |
+        $Password = ConvertTo-SecureString "nutanix/4u" -AsPlainText -Force
+        New-LocalUser -AccountNeverExpires -Password $Password -PasswordNeverExpires -Name "nutanix"
+        Add-LocalGroupMember -Group Administrators -Member nutanix
 
   - name: Install fio using msi from GitHub
     win_shell: |
         wget https://github.com/axboe/fio/releases/download/fio-3.35/fio-3.35-x64.msi
         msiexec /quiet /i fio-3.35-x64.msi
-
-  - name: Disable password complexity requirements
-    win_shell: |        
-        secedit /export /cfg c:\new.cfg
-        ${c:new.cfg}=${c:new.cfg} | % {$_.Replace('PasswordComplexity=1', 'PasswordComplexity=0')}
-        secedit /configure /db $env:windir\security\new.sdb /cfg c:\new.cfg /areas SECURITYPOLICY
-        del c:\new.cfg
-
-  - name: Create nutanix user and add to Administrators local group
-      win_shell: |
-        $Password = ConvertTo-SecureString "nutanix/4u" -AsPlainText -Force
-        New-LocalUser -AccountNeverExpires -Password $Password -PasswordNeverExpires -Name "nutanix"
-        Add-LocalGroupMember -Group Administrators -Member nutanix
 
   - name: RefreshEnv
     win_command: C:\ProgramData\chocolatey\bin\RefreshEnv.cmd
