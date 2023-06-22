@@ -12,7 +12,7 @@
   - name: Disable Windows Firewall
     win_command: netsh advfirewall set allprofiles state off
 
-  - name: Install chocolatey, openssh wget 7zip procexp procmon
+  - name: Installation of chocolatey openssh wget 7zip procexp procmon
     win_shell: |
         iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
         choco install -y openssh -params "/SSHServerFeature" wget 7zip procexp procmon
@@ -41,7 +41,7 @@
 
   - name: Install fio using msi from GitHub
     win_shell: |
-        wget https://github.com/axboe/fio/releases/download/fio-3.35/fio-3.35-x64.msi
+        wget https://github.com/axboe/fio/releases/download/fio-3.35/fio-3.35-x64.msi -UseBasicParsing
         msiexec /quiet /i fio-3.35-x64.msi
         del fio-3.35-x64.msi
 
