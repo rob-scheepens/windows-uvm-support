@@ -41,8 +41,9 @@
 
   - name: Install fio using msi from GitHub
     win_shell: |
-        wget https://github.com/axboe/fio/releases/download/fio-3.35/fio-3.35-x64.msi -UseBasicParsing
+        wget.exe https://github.com/axboe/fio/releases/download/fio-3.35/fio-3.35-x64.msi
         msiexec /quiet /i fio-3.35-x64.msi
+        Set-Item env:\Path -Value ($env:Path + ";C:\Program Files\fio")
         del fio-3.35-x64.msi
 
   - name: RefreshEnv
