@@ -47,4 +47,6 @@
         del fio-3.35-x64.msi
 
   - name: RefreshEnv
-    win_command: C:\ProgramData\chocolatey\bin\RefreshEnv.cmd
+    win_shell: |
+        Import-Module $env:ChocolateyInstall\\helpers\\chocolateyProfile.psm1
+        RefreshEnv
