@@ -12,14 +12,17 @@
   - name: Disable Windows Firewall
     win_command: netsh advfirewall set allprofiles state off
 
-  - name: Installation of chocolatey openssh wget 7zip procexp procmon
+  - name: Installation of chocolatey openssh wget 7zip
     win_shell: |
         iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
-        choco install -y openssh -params "/SSHServerFeature" wget 7zip procexp procmon
+        choco install -y openssh -params "/SSHServerFeature" wget 7zip
+        Import-Module C:\\ProgramData\\chocolatey\\helpers\\chocolateyProfile.psm1
+        RefreshEnv
 
   - name: Create windows_exporter service with custom build in C:\
     win_shell: |
         New-Service -BinaryPathName C:\windows_exporter.exe -DisplayName windows_exporter -Name windows_exporter -StartupType Automatic
+        Start-Service windows_exporter
 
   - name: Disable password complexity requirements
     win_shell: |        
@@ -45,8 +48,3 @@
         msiexec /quiet /i fio-3.35-x64.msi
         Set-Item env:\Path -Value ($env:Path + ";C:\Program Files\fio")
         del fio-3.35-x64.msi
-
-  - name: RefreshEnv
-    win_shell: |
-        Import-Module C:\\ProgramData\\chocolatey\\helpers\\chocolateyProfile.psm1
-        RefreshEnv
