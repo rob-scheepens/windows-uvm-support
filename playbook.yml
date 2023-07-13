@@ -12,10 +12,12 @@
   - name: Disable Windows Firewall
     win_command: netsh advfirewall set allprofiles state off
 
-  - name: Installation of chocolatey openssh wget 7zip
+  - name: Installation of chocolatey, ssh and packages
     win_shell: |
+        Set-ExecutionPolicy Bypass -Force
+        [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
         iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
-        choco install -y openssh -params "/SSHServerFeature" wget 7zip
+        choco install -y openssh -params "/SSHServerFeature" wget curl iperf3
         Import-Module C:\\ProgramData\\chocolatey\\helpers\\chocolateyProfile.psm1
         RefreshEnv
 
@@ -48,3 +50,4 @@
         msiexec /quiet /i fio-3.35-x64.msi
         Set-Item env:\Path -Value ($env:Path + ";C:\Program Files\fio")
         del c:\\fio-3.35-x64.msi
+        echo "install done"
