@@ -44,10 +44,17 @@
         New-LocalUser -AccountNeverExpires -Password $Password -PasswordNeverExpires -Name "nutanix"
         Add-LocalGroupMember -Group Administrators -Member nutanix
 
-  - name: Install fio using msi from GitHub
-    win_shell: |
-        wget https://github.com/axboe/fio/releases/download/fio-3.35/fio-3.35-x64.msi -OutFile c:\\fio-3.35-x64.msi
-        msiexec /quiet /i fio-3.35-x64.msi
-        Set-Item env:\Path -Value ($env:Path + ";C:\Program Files\fio")
-        del c:\\fio-3.35-x64.msi
-        echo "install done"
+  - name: Install fio
+    ansible.windows.win_package:
+      path: https://github.com/axboe/fio/releases/download/fio-3.35/fio-3.35-x64.msi
+      product_id: {B7EB2E35-942A-4373-BA92-3B2F0FA760C7}
+      state: present
+      arguments: /qn /norestart
+
+  - name: Add fio to PATH
+    ansible.windows.win_path:
+      elements:
+      - C:\Program Files\fio
+
+  - name: Reboot the machine with all defaults
+    ansible.windows.win_reboot:
